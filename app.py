@@ -16,14 +16,29 @@ MODEL_ID: str = "firdhokk/speech-emotion-recognition-with-openai-whisper-large-v
 
 
 EMOJI_EMOTIONS: dict[str, str] = {
-    "sad": "😥",
-    "happy": "😄",
     "angry": "😡",
-    "neutral": "😶",
     "disgust": "🤮",
     "fearful": "😱",
+    "happy": "😄",
+    "neutral": "😶",
+    "sad": "😥",
     "surprised": "😮",
 }
+
+i18n = gr.I18n(
+    en={
+        "sad": "Triste",
+        "happy": "Feliz",
+        "angry": "Irritado",
+        "neutral": "Neutro",
+        "disgust": "Desgosto",
+        "fearful": "Amedrontado",
+        "surprised": "Surpreso",
+        "empty_emotion": "🫥 Emoção",
+        "audio_input": "Áudio para ser classificado",
+        "classify_btn": "Classificar",
+    }
+)
 
 
 class AudioEmotion:
@@ -118,9 +133,7 @@ def classify(audio_input_path: Path | str) -> list[gr.Markdown]:
 
     return [
         gr.Markdown(
-            markdown_mask(
-                f"{EMOJI_EMOTIONS.get(label)} {label.capitalize()} {prob:.02%}"
-            )
+            markdown_mask(f"{EMOJI_EMOTIONS.get(label)} {i18n(label)} {prob:.02%}")
         )
         for label, prob in probs.items()
     ]
@@ -128,17 +141,20 @@ def classify(audio_input_path: Path | str) -> list[gr.Markdown]:
 
 with gr.Blocks() as demo:
     audio_input = gr.Audio(
-        label="Audio to classify",
+        label=i18n("audio_input"),
         sources=["microphone", "upload"],
         type="filepath",
         show_download_button=False,
     )
-    classify_btn = gr.Button("Classify")
+    classify_btn = gr.Button(i18n("classify_btn"))
 
     with gr.Column():
-        emotions = [gr.Markdown(markdown_mask("❓ Emotion")) for _ in range(7)]
+        emotions = [
+            gr.Markdown(markdown_mask(f"{emoji} {i18n(label)} {0.0:.02%}"))
+            for label, emoji in EMOJI_EMOTIONS.items()
+        ]
 
     classify_btn.click(classify, inputs=audio_input, outputs=emotions)
 
 if __name__ == "__main__":
-    demo.launch(share=False, show_api=False)
+    demo.launch(share=False, show_api=False, i18n=i18n)
