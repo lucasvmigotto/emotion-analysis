@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from .app import build_gui, on_classify
 from .services import Classifier
 from .settings import Settings
@@ -11,8 +9,6 @@ def main(settings: Settings):
     setup_log(settings.LOG)
 
     model = Classifier(settings.MODELS)
-    pprint(model.id2label)
-    pprint(model.label2id)
 
     build_gui(model, on_btn_classify=on_classify).launch(settings.GRADIO.config)
 
