@@ -5,7 +5,7 @@ from .utils import setup_envvars, setup_log
 
 
 def main(settings: Settings):
-    setup_envvars(settings.GRADIO.env, settings.HF.env)
+    setup_envvars(settings.GRADIO.env)
     setup_log(settings.LOG)
 
     model = Classifier(settings.MODELS)
