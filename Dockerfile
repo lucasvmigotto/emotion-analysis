@@ -32,6 +32,4 @@ COPY \
 
 ENTRYPOINT [ "/app/.venv/bin/python"]
 
-VOLUME ["/hf"]
-
 CMD [ "-m", "emotion_analysis" ]

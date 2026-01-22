@@ -1,3 +1,4 @@
+from logging import Logger, getLogger
 from pathlib import Path
 from typing import Literal, Self
 
@@ -7,7 +8,6 @@ from torch import Tensor
 from torch import device as torch_device
 from torch import inference_mode as torch_inferece_mode
 from torch.cuda import is_available as cuda_is_available
-from torch.types import Number as TorchNumber
 from transformers import AutoFeatureExtractor, AutoModelForAudioClassification
 from transformers.modeling_outputs import SequenceClassifierOutput
 
@@ -22,10 +22,21 @@ class Classifier:
         /,
         audio_max_duration: int | None = 30,
     ):
+        self._log: Logger = getLogger(__name__)
+
+        self._log.debug("Selecting model device")
         self._device = torch_device("cuda" if cuda_is_available() else "cpu")
+        self._log.info(f"Model will be initiated in {self._device}")
+
+        self._log.debug(f"Get pretrained {settings.MODEL_ID} to {self._device}")
         self._model = AutoModelForAudioClassification.from_pretrained(
             settings.MODEL_ID
         ).to(self._device)
+        self._log.info(f"Model {settings.MODEL_ID} available in {self._device}")
+
+        self._log.debug(
+            f"Get feature extractor {settings.FEATURE_EXTRACTOR_ID or settings.MODEL_ID}"
+        )
         self._feat_extractor = AutoFeatureExtractor.from_pretrained(
             settings.FEATURE_EXTRACTOR_ID or settings.MODEL_ID
         )
@@ -47,6 +58,8 @@ class Classifier:
         truncation: bool = True,
         return_tensors_type: Literal["pt", "tf"] = "pt",
     ) -> dict[str, Tensor]:
+        self._log.debug(f"Preprocessing audio: {audio_path}")
+
         audio, _ = librosa_load(audio_path, sr=None)
         audio = (
             audio[: self._max_length]
@@ -65,30 +78,30 @@ class Classifier:
     def _predict(self: Self, audio_sample: dict[str, Tensor]) -> Tensor:
         with torch_inferece_mode():
             prediction: SequenceClassifierOutput = self._model(**audio_sample)
+            self._log.debug(f"Prediction logits: {prediction.logits}")
         return prediction.logits
 
     def predict(
         self: Self,
         audio: Path | str,
         /,
-        return_probs: bool = False,
-        return_id: bool = False,
-    ) -> dict[int, float] | TorchNumber | str:
-        probs: Tensor = self._predict(
-            {
-                key: value.to(self._device)
-                for key, value in self._preprocess(audio).items()
-            }
-        ).cpu()
+        return_labeled_probs: bool = False,
+    ) -> dict[int, float] | Tensor:
+        probs: Tensor = (
+            self._predict(
+                {
+                    key: value.to(self._device)
+                    for key, value in self._preprocess(audio).items()
+                }
+            )
+            .cpu()
+            .softmax(dim=-1)[0]
+        )
 
-        if return_probs:
-            return {
-                self.id2label.get(idx): prob.item()
-                for idx, prob in enumerate(probs.softmax(dim=-1)[0])
-            }
+        self._log.info(f"Prediction probabilities: {probs}")
 
         return (
-            (predicted_id := probs.argmax(dim=-1).item())
-            if return_id
-            else self.id2label.get(predicted_id)
+            {idx: prob.item() for idx, prob in enumerate(probs)}
+            if return_labeled_probs
+            else probs
         )

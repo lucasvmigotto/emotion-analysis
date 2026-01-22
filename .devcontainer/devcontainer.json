@@ -17,7 +17,7 @@
         },
         {
             "source": "emotion-analysis-hf-cache",
-            "target": "/hf",
+            "target": "/home/vscode/.hf",
             "type": "volume"
         },
         {

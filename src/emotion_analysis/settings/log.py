@@ -4,7 +4,7 @@ from pydantic import BaseModel, computed_field
 
 
 class LogSettings(BaseModel):
-    LEVEL: str = "DEBUG"
+    LEVEL: str = "INFO"
     DATE_FORMAT: str = "%Y-%m-%d %H:%M:%S"
     FORMAT: str = "{asctime} {levelname} {name}.{funcName}: {message}"
     STYLE: str = "{"
