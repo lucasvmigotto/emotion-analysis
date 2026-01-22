@@ -10,7 +10,7 @@ def main(settings: Settings):
 
     model = Classifier(settings.MODELS)
 
-    build_gui(model, on_btn_classify=on_classify).launch(settings.GRADIO.config)
+    build_gui(model, on_btn_classify=on_classify).launch(**settings.GRADIO.config)
 
 
 if __name__ == "__main__":
