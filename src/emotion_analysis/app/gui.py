@@ -1,6 +1,6 @@
 from typing import Callable
 
-from gradio import Audio, Blocks, Button, Column, Slider
+from gradio import Audio, Blocks, Button, Column, Label, Row
 
 from ..services import Classifier
 
@@ -15,16 +15,9 @@ def build_gui(model: Classifier, on_btn_classify: Callable):
             )
             classify_btn = Button(value="Classify")
 
-        with Column():
+        with Row():
             emotions = [
-                Slider(
-                    label=emotion.capitalize(),
-                    minimum=0,
-                    maximum=1,
-                    precision=0,
-                    interactive=False,
-                )
-                for emotion in model.label2id.keys()
+                Label(label=emotion.capitalize()) for emotion in model.label2id.keys()
             ]
 
         classify_btn.click(
