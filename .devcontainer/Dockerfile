@@ -5,7 +5,7 @@ FROM mcr.microsoft.com/devcontainers/python:3.14-trixie
 ARG USERNAME="vscode"
 
 ENV VIRTUAL_ENV="/tmp/venv"
-ENV HF_HOME="/hf/"
+ENV HF_HOME="/home/${USERNAME}/.hf"
 
 ENV UV_PROJECT_ENVIRONMENT="${VIRTUAL_ENV}"
 ENV UV_LINK_MODE="copy"
