@@ -16,6 +16,7 @@ class LogSettings(BaseModel):
         ("httpx", None),
         ("numba", None),
         ("python_multipart", None),
+        ("filelock", None),
     }
     SUPPRESS_LEVEL: str = "ERROR"
 

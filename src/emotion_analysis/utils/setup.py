@@ -14,5 +14,5 @@ def setup_log(settings: LogSettings | None = None):
 def setup_envvars(*envs: dict[str, str]) -> None:
     for env in envs:
         for env_key, env_value in env.items():
-            if not getenv(env_key):
+            if not getenv(env_key) and env_value:
                 environ[env_key] = env_value
