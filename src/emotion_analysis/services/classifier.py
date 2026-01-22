@@ -71,24 +71,21 @@ class Classifier:
         self: Self,
         audio: Path | str,
         /,
-        return_probs: bool = False,
-        return_id: bool = False,
-    ) -> dict[int, float] | TorchNumber | str:
-        probs: Tensor = self._predict(
-            {
-                key: value.to(self._device)
-                for key, value in self._preprocess(audio).items()
-            }
-        ).cpu()
-
-        if return_probs:
-            return {
-                self.id2label.get(idx): prob.item()
-                for idx, prob in enumerate(probs.softmax(dim=-1)[0])
-            }
+        return_labeled_probs: bool = False,
+    ) -> dict[int, float] | Tensor:
+        probs: Tensor = (
+            self._predict(
+                {
+                    key: value.to(self._device)
+                    for key, value in self._preprocess(audio).items()
+                }
+            )
+            .cpu()
+            .softmax(dim=-1)[0]
+        )
 
         return (
-            (predicted_id := probs.argmax(dim=-1).item())
-            if return_id
-            else self.id2label.get(predicted_id)
+            {idx: prob.item() for idx, prob in enumerate(probs)}
+            if return_labeled_probs
+            else probs
         )
